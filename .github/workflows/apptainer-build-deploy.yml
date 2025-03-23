@@ -24,7 +24,7 @@ jobs:
 
       - name: Build Container
         run: |
-           singularity build container.sif Singularity
+           singularity build container.sif Apptainer
 
       - name: Login and Deploy Container
         run: |
