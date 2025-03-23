@@ -1,29 +1,41 @@
 name: Apptainer Build Deploy
+
 on:
   pull_request:
   push:
-    branches: main
+    branches: master
+
 jobs:
   build-test-container:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+
     container:
       image: quay.io/singularity/singularity:v4.1.0
       options: --privileged
-    name: Build Container
+
+    name: Build and Deploy Container
     steps:
-      - name: Check out code for the container builds
+
+      - name: Check out code
         uses: actions/checkout@v4
+
       - name: Build Container
         run: |
-          singularity build container.sif Apptainer
-      - name: Login and Deploy Container
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          singularity build container.sif Apptainer.def
+
+      - name: Install ORAS
         run: |
-          singularity remote add --no-login ghcr oras://ghcr.io
-          echo $GITHUB_TOKEN | singularity remote login --username ${{ github.actor }} --password-stdin ghcr
-          TAG=${GITHUB_SHA::7}
-          singularity push container.sif oras://ghcr.io/${GITHUB_REPOSITORY}:${TAG}
+          curl -LO https://github.com/oras-project/oras/releases/download/v0.16.0/oras_0.16.0_linux_amd64.tar.gz
+          tar -xvf oras_0.16.0_linux_amd64.tar.gz
+          mv oras /usr/local/bin/
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
+      - name: Push Container to GHCR
+        run: |
+          oras push ghcr.io/${{ github.repository }}/container.sif:latest container.sif
