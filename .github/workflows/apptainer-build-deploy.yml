@@ -2,7 +2,7 @@ name: Apptainer Build Deploy
 on:
   pull_request:
   push:
-    branches: main
+    branches: master
 jobs:
   build-test-container:
     runs-on: ubuntu-latest
@@ -23,7 +23,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          export CR_PAT=$GITHUB_TOKEN
-          echo $CR_PAT | singularity remote login --username ${{ github.actor }} --password-stdin oras://ghcr.io
+          singularity remote add --no-login ghcr oras://ghcr.io
+          echo $GITHUB_TOKEN | singularity remote login --username ${{ github.actor }} --password-stdin ghcr
           TAG=${GITHUB_SHA::7}
           singularity push container.sif oras://ghcr.io/${GITHUB_REPOSITORY}:${TAG}
