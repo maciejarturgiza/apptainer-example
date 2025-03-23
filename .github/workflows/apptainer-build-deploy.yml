@@ -24,7 +24,7 @@ jobs:
 
       - name: Build Container
         run: |
-          singularity build container.sif Apptainer.def
+          singularity build container.sif Apptainer
 
       - name: Install ORAS
         run: |
