@@ -20,4 +20,8 @@ jobs:
         run: |
           singularity build container.sif Apptainer
       - name: Login and Deploy Container
-        run: singularity remote add --no-login ghcr oras://ghcr.io && echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ secrets.GHCR_USERNAME }} --password-stdin ghcr && singularity push container.sif ghcr:${GITHUB_REPOSITORY}:${tag}
+        run: |
+          singularity remote add --no-login ghcr oras://ghcr.io
+          echo ${{ github.token }} | singularity remote login --username ${{ github.actor }} --password-stdin ghcr
+          TAG=${GITHUB_SHA::7}
+          singularity push container.sif ghcr:${GITHUB_REPOSITORY}:${TAG}
